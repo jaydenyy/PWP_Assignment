@@ -18,6 +18,18 @@ def get_menu_choice():
 
         print("Invalid choice. Please enter a number from 1 to 5.")
 
+def enroll_member():
+    while True:
+        memberID = input("Enter Member ID: ")
+        if memberID in ("1"):
+            courseID = input("Enter Course ID: ")
+            if courseID in ("1"):
+                print("Enrolling Member")
+                return
+            print("Invalid ID. Please enter a valid ID.")
+
+
+
 def run_menu():
     while True:
         display_menu()
