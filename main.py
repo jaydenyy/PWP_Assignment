@@ -1,6 +1,6 @@
 import members
 import courses
-import enrollments
+import enrolments
 import resources
 
 
@@ -40,7 +40,7 @@ def main():
             courses.run_menu()
 
         elif choice == "3":
-            enrollments.run_menu()
+            enrolments.run_menu()
 
         elif choice == "4":
             resources.run_menu()
