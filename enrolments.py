@@ -1,11 +1,11 @@
 def display_menu():
     print("\n" + "=" * 45)
-    print("DOODLE ENROLLMENT MANAGEMENT")
+    print("DOODLE ENROLMENT MANAGEMENT")
     print("=" * 45)
-    print("1. Enroll Member")
-    print("2. Display and Search Enrollments")
-    print("3. Update Enrollments")
-    print("4. Delete Enrollments")
+    print("1. Enrol Member")
+    print("2. Display and Search Enrolments")
+    print("3. Update Enrolments")
+    print("4. Delete Enrolments")
     print("5. Back to Main Menu")
     print("=" * 45)
 
@@ -36,16 +36,16 @@ def run_menu():
         choice = get_menu_choice()
 
         if choice == "1":
-            enroll_member()
+            enrol_member()
 
         elif choice == "2":
-            display_enrollments()
+            display_enrolments()
 
         elif choice == "3":
-            update_enrollments()
+            update_enrolments()
 
         elif choice == "4":
-            delete_enrollments()
+            delete_enrolments()
 
         elif choice == "5":
             break
