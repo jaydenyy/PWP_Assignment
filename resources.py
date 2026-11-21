@@ -1,4 +1,3 @@
-
 import os
 
 RESOURCE_FILE = "text/resources.txt"
