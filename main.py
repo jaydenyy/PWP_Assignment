@@ -5,7 +5,6 @@ import resources
 
 
 def display_main_menu():
-    """Display the main menu."""
     print("\n" + "=" * 45)
     print("DOODLE COMMUNITY LEARNING HUB SYSTEM")
     print("=" * 45)
