@@ -1,3 +1,6 @@
+import csv
+import os
+DATA_FILE = "members.txt"
 MENU = """
 =============================================
    MEMBER MANAGEMENT SYSTEM 
@@ -23,5 +26,23 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+def load_members(path=DATA_FILE):
+    members = []
+    if not os.path.exists(path):
+        return members
+
+with open(path,newlines="",encoding="ult-8-sig")
+    as fh:
+    for line_no,row in
+enumerate(csv.reader(fh),start=1):
+    if not row or all(cell.strip() == "" for cell in row):
+        continue
+    if line_no == 1 and row[0].strip().lower()in ("members id","memberid","id"):
+        continue
+mid,name,age,contact,email,start = [cell.strip()for cell in row[:6]]
+    try:
+        age_value = int(age)
+
 
 
