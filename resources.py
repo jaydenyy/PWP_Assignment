@@ -140,6 +140,12 @@ def add_resource():
     print("Availability :", availability)
     print("---------------------------------")
 
+"""
+courseid
+resourceid
+resourcename
+available
+"""
 
 def display_resources():
     print("\n========== DISPLAY RESOURCES ==========")
