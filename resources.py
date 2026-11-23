@@ -1,6 +1,8 @@
+
 import os
 
 RESOURCE_FILE = "text/resources.txt"
+COURSE_FILE = "text/courses.txt"
 
 
 def display_menu():
@@ -41,7 +43,7 @@ def read_resources():
             if line.strip():
                 data = line.strip().split(",")
 
-                if len(data) == 5:
+                if len(data) == 4:
                     resources.append(data)
 
     return resources
@@ -53,51 +55,66 @@ def save_resources(resources):
             file.write(",".join(resource) + "\n")
 
 
-def get_non_empty_input(prompt):
-    while True:
-        value = input(prompt).strip()
+def check_course_id(course_id):
+    if not os.path.exists(COURSE_FILE):
+        return False
 
-        if value == "":
-            print("This field cannot be empty.")
-        elif "," in value:
+    with open(COURSE_FILE, "r") as file:
+        for line in file:
+            data = line.strip().split(",")
+
+            if data and data[0].upper() == course_id.upper():
+                return True
+
+    return False
+
+
+def get_course_id():
+    while True:
+        course_id = input("Enter Course ID: ").strip().upper()
+
+        if course_id == "":
+            print("Course ID cannot be empty.")
+
+        elif "," in course_id:
             print("Commas are not allowed.")
+
+        elif check_course_id(course_id):
+            return course_id
+
         else:
-            return value
+            print("Course ID does not exist. Please try again.")
 
 
-def get_quantity():
+def get_resource_name():
     while True:
-        quantity = input("Enter Quantity: ").strip()
+        resource_name = input("Enter Resource Name: ").strip()
 
-        try:
-            quantity = int(quantity)
+        if resource_name == "":
+            print("Resource Name cannot be empty.")
 
-            if quantity < 0:
-                print("Quantity cannot be negative.")
-            else:
-                return str(quantity)
+        elif "," in resource_name:
+            print("Commas are not allowed.")
 
-        except ValueError:
-            print("Invalid quantity. Please enter a whole number.")
+        else:
+            return resource_name
 
 
 def get_availability():
     while True:
-        status = input(
-            "Enter Availability (Available/Unavailable): "
-        ).strip().title()
+        available = input("Is the resource available? (Yes/No): ").strip().title()
 
-        if status in ("Available", "Unavailable"):
-            return status
+        if available in ("Yes", "No"):
+            return available
 
-        print("Invalid status. Please enter Available or Unavailable.")
+        print("Invalid input. Please enter Yes or No.")
 
 
 def generate_resource_id(resources):
     highest_number = 0
 
     for resource in resources:
-        resource_id = resource[0]
+        resource_id = resource[1]
 
         if resource_id.startswith("R") and resource_id[1:].isdigit():
             number = int(resource_id[1:])
@@ -111,21 +128,22 @@ def generate_resource_id(resources):
 def add_resource():
     print("\n========== ADD RESOURCE ==========")
 
+    if not os.path.exists(COURSE_FILE):
+        print("Error: Course data file not found.")
+        return
+
     resources = read_resources()
 
+    course_id = get_course_id()
     resource_id = generate_resource_id(resources)
-
-    resource_name = get_non_empty_input("Enter Resource Name: ")
-    resource_type = get_non_empty_input("Enter Resource Type/Category: ")
-    quantity = get_quantity()
-    availability = get_availability()
+    resource_name = get_resource_name()
+    available = get_availability()
 
     resource = [
+        course_id,
         resource_id,
         resource_name,
-        resource_type,
-        quantity,
-        availability
+        available
     ]
 
     resources.append(resource)
@@ -133,19 +151,12 @@ def add_resource():
 
     print("\nResource Added Successfully!")
     print("---------------------------------")
+    print("Course ID    :", course_id)
     print("Resource ID  :", resource_id)
     print("Resource Name:", resource_name)
-    print("Type         :", resource_type)
-    print("Quantity     :", quantity)
-    print("Availability :", availability)
+    print("Available    :", available)
     print("---------------------------------")
 
-"""
-courseid
-resourceid
-resourcename
-available
-"""
 
 def display_resources():
     print("\n========== DISPLAY RESOURCES ==========")
@@ -156,31 +167,30 @@ def display_resources():
         print("No resource records found.")
         return
 
-    print("-" * 85)
-    print("{:<10} {:<22} {:<18} {:<12} {:<15}".format(
-        "ID", "Resource Name", "Type", "Quantity", "Availability"
+    print("-" * 75)
+    print("{:<15} {:<15} {:<25} {:<15}".format(
+        "Course ID", "Resource ID", "Resource Name", "Available"
     ))
-    print("-" * 85)
+    print("-" * 75)
 
     for resource in resources:
-        print("{:<10} {:<22} {:<18} {:<12} {:<15}".format(
+        print("{:<15} {:<15} {:<25} {:<15}".format(
             resource[0],
-            resource[1][:21],
-            resource[2][:17],
-            resource[3],
-            resource[4]
+            resource[1],
+            resource[2][:24],
+            resource[3]
         ))
 
-    print("-" * 85)
+    print("-" * 75)
 
     search_resources(resources)
 
 
 def search_resources(resources):
     print("\n========== SEARCH RESOURCES ==========")
-    print("1. Search by Resource ID")
-    print("2. Search by Resource Name")
-    print("3. Search by Resource Type")
+    print("1. Search by Course ID")
+    print("2. Search by Resource ID")
+    print("3. Search by Resource Name")
     print("4. Back")
 
     while True:
@@ -203,10 +213,11 @@ def search_resources(resources):
     found = []
 
     for resource in resources:
+
         if choice == "1" and keyword == resource[0].lower():
             found.append(resource)
 
-        elif choice == "2" and keyword in resource[1].lower():
+        elif choice == "2" and keyword == resource[1].lower():
             found.append(resource)
 
         elif choice == "3" and keyword in resource[2].lower():
@@ -217,11 +228,11 @@ def search_resources(resources):
 
         for resource in found:
             print("---------------------------------")
-            print("Resource ID  :", resource[0])
-            print("Resource Name:", resource[1])
-            print("Type         :", resource[2])
-            print("Quantity     :", resource[3])
-            print("Availability :", resource[4])
+            print("Course ID    :", resource[0])
+            print("Resource ID  :", resource[1])
+            print("Resource Name:", resource[2])
+            print("Available    :", resource[3])
+
     else:
         print("No matching resource found.")
 
@@ -240,7 +251,7 @@ def update_resource():
     selected_resource = None
 
     for resource in resources:
-        if resource[0].upper() == resource_id:
+        if resource[1].upper() == resource_id:
             selected_resource = resource
             break
 
@@ -250,14 +261,21 @@ def update_resource():
 
     print("\nCurrent Resource Details")
     print("---------------------------------")
-    print("Resource ID  :", selected_resource[0])
-    print("Resource Name:", selected_resource[1])
-    print("Type         :", selected_resource[2])
-    print("Quantity     :", selected_resource[3])
-    print("Availability :", selected_resource[4])
+    print("Course ID    :", selected_resource[0])
+    print("Resource ID  :", selected_resource[1])
+    print("Resource Name:", selected_resource[2])
+    print("Available    :", selected_resource[3])
     print("---------------------------------")
 
     print("Press Enter to keep the current value.")
+
+    new_course_id = input("Enter New Course ID: ").strip().upper()
+
+    if new_course_id != "":
+        if check_course_id(new_course_id):
+            selected_resource[0] = new_course_id
+        else:
+            print("Invalid Course ID. Keeping the old Course ID.")
 
     new_name = input("Enter New Resource Name: ").strip()
 
@@ -266,53 +284,32 @@ def update_resource():
         new_name = input("Enter New Resource Name: ").strip()
 
     if new_name != "":
-        selected_resource[1] = new_name
-
-    new_type = input("Enter New Resource Type: ").strip()
-
-    while "," in new_type:
-        print("Commas are not allowed.")
-        new_type = input("Enter New Resource Type: ").strip()
-
-    if new_type != "":
-        selected_resource[2] = new_type
+        selected_resource[2] = new_name
 
     while True:
-        new_quantity = input("Enter New Quantity: ").strip()
-
-        if new_quantity == "":
-            break
-
-        try:
-            quantity = int(new_quantity)
-
-            if quantity < 0:
-                print("Quantity cannot be negative.")
-            else:
-                selected_resource[3] = str(quantity)
-                break
-
-        except ValueError:
-            print("Invalid quantity. Please enter a whole number.")
-
-    while True:
-        new_status = input(
-            "Enter New Availability (Available/Unavailable): "
+        new_available = input(
+            "Is the resource available? (Yes/No): "
         ).strip().title()
 
-        if new_status == "":
+        if new_available == "":
             break
 
-        elif new_status in ("Available", "Unavailable"):
-            selected_resource[4] = new_status
+        elif new_available in ("Yes", "No"):
+            selected_resource[3] = new_available
             break
 
         else:
-            print("Invalid availability status.")
+            print("Please enter Yes or No.")
 
     save_resources(resources)
 
     print("\nResource Updated Successfully!")
+    print("---------------------------------")
+    print("Course ID    :", selected_resource[0])
+    print("Resource ID  :", selected_resource[1])
+    print("Resource Name:", selected_resource[2])
+    print("Available    :", selected_resource[3])
+    print("---------------------------------")
 
 
 def delete_resource():
@@ -329,7 +326,7 @@ def delete_resource():
     selected_resource = None
 
     for resource in resources:
-        if resource[0].upper() == resource_id:
+        if resource[1].upper() == resource_id:
             selected_resource = resource
             break
 
@@ -339,11 +336,10 @@ def delete_resource():
 
     print("\nResource Details")
     print("---------------------------------")
-    print("Resource ID  :", selected_resource[0])
-    print("Resource Name:", selected_resource[1])
-    print("Type         :", selected_resource[2])
-    print("Quantity     :", selected_resource[3])
-    print("Availability :", selected_resource[4])
+    print("Course ID    :", selected_resource[0])
+    print("Resource ID  :", selected_resource[1])
+    print("Resource Name:", selected_resource[2])
+    print("Available    :", selected_resource[3])
     print("---------------------------------")
 
     confirmation = input(

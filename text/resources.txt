@@ -1,2 +1,35 @@
-R001,PWP,ICT,1,Available
-R002,Jayden Gay,lol,1,Available
+C001,R001,Resource1,Yes
+START
+
+    SET RESOURCE_FILE = "text/resources.txt"
+
+    CALL ensure_resource_file()
+
+    WHILE TRUE
+
+        CALL display_menu()
+
+        CALL get_menu_choice()
+        STORE result in choice
+
+        IF choice = "1" THEN
+            CALL add_resource()
+
+        ELSE IF choice = "2" THEN
+            CALL display_resources()
+
+        ELSE IF choice = "3" THEN
+            CALL update_resource()
+
+        ELSE IF choice = "4" THEN
+            CALL delete_resource()
+
+        ELSE IF choice = "5" THEN
+            DISPLAY "Returning to Main Menu..."
+            EXIT LOOP
+
+        END IF
+
+    END WHILE
+
+END
