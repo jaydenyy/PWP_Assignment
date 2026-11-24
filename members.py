@@ -84,6 +84,53 @@ def main():
 if __name__ == "__main__":
     main()
 
+def print_table(members):
+    if not members:
+        print("\n (No members found.)")
+        return
 
+    headers = ["Member Id","Name","Age","Contact","Email","Start Date"]
+    rows = [[m["id"],m["name"],str(m["age"]),m["contact"],m["email"],m["start"]]for m in members]
+    widths = [max([len(headers[i])]+[len(r[i])for r in rows]) for i in range(len(headers))]
+    border = "+" + "+".join("-"*(w+2)for w in widths)+"+"
 
+    def format_row(cells):
+        return "| " + " | ".join(cell.ljust(widths[i])for u,cell in enumerate(cells))+"|"
 
+    print(border)
+    print(format_row(headers))
+    print(border)
+    for r in rows:
+        print(format_row(r))
+        print(border)
+
+def print_members_detail(member):
+    print(f" Member ID :{member['id']}")
+    print(f" Name :{member['name']}")
+    print(f" Age :{member['age']}")
+    print(f" Contact:{member['contact']}")
+    print(f" Email :{member['email']}")
+    print(f" Start Date:{member['start']}")
+
+def main():
+    print(MENU)
+    members = load_members()
+    print(f"Loaded{len(members)}member(s)from{os.path.abspath(DATA_FILE)}")
+
+    while True:
+        choice = input("\nEnter your choice: ").strip()
+
+        if choice == "0":
+            print("Goodbye!")
+            break
+        elif choice == "2":
+            print()
+            print_table(members)
+        elif choice in ("1","3","4"):
+            print(f"[TODO]Option{choice}is not ready yet.")
+        else:
+            print("!Invalid choice.Please enter 0,1,2,3 or 4.")
+        print(MENU)
+
+if __name__ == "__main__":
+    main()
