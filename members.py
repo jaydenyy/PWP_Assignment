@@ -166,7 +166,6 @@ def print_table(members):
 
     def format_row(cells):
         return "| " + " | ".join(cell.ljust(widths[i])for u,cell in enumerate(cells))+"|"
-
     print(border)
     print(format_row(headers))
     print(border)
@@ -331,11 +330,10 @@ def delete_member(members):
     save_members(members)
     print(f"[OK] Member {member['id']}has been deleted.")
 
-
 def main():
     print(MENU)
     members = load_members()
-    print(f"Loaded{len(members)}member(s)from{os.path.abspath(DATA_FILE)}")
+    print(f"Loaded {len(members)} member(s) from {os.path.abspath(DATA_FILE)}")
 
     while True:
         choice = input("\nEnter your choice: ").strip()
@@ -347,15 +345,16 @@ def main():
             add_member(members)
         elif choice == "2":
             view_members(members)
-        elif choice in "3":
+        elif choice == "3":
             update_member(members)
-        elif choice in "4":
+        elif choice == "4":
             delete_member(members)
         else:
-            print("!Invalid choice.Please enter 0,1,2,3 or 4.")
+            print("  ! Invalid choice. Please enter 0, 1, 2, 3 or 4.")
         print(MENU)
 
 if __name__ == "__main__":
     main()
+
 
 
