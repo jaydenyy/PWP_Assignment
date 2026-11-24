@@ -27,7 +27,7 @@ def load_members(path=DATA_FILE):
     if not os.path.exists(path):
         return members
 
-    with open(path,newlines="",encoding="utf-8-sig") as fh:
+    with open(path,newline="",encoding="utf-8-sig") as fh:
         for line_no,row in enumerate(csv.reader(fh),start=1):
            if not row or all(cell.strip() == "" for cell in row):
               continue
@@ -50,11 +50,11 @@ def load_members(path=DATA_FILE):
                 "email":email,
                 "start":start,
                  })
-           return members
+        return members
 
 def save_members(members,path=DATA_FILE):
     tmp_path = path+".tmp"
-    with open(tmp_path,"w",newline="",encoding="ult-8")as fh:
+    with open(tmp_path,"w",newline="",encoding="ulf-8")as fh:
         writer = csv.writer(fh)
         for m in members:
             writer.writerow([m["id"],m["name"],m["age"],m["contact"],m["email"],m["start"]])
@@ -245,7 +245,7 @@ def add_member(members):
         return
 
     members.append(member)
-    save_members(member)
+    save_members(members)
     print(f"Member{member_id} has been registered.")
 
 def view_members(members):
@@ -262,7 +262,7 @@ def view_members(members):
     print(f"\n{len(results)}member(s) found:")
     if results:
         print()
-        print_table(members)
+        print_table(results)
     else:
         print("\n (No members found.)")
 
@@ -277,7 +277,7 @@ def update_member(members):
         return
 
     print("\nCurrent record:")
-    print_members_detail(members)
+    print_members_detail(member)
     print("\nPress Enter to keep the current value.")
 
     updated = {
@@ -314,7 +314,7 @@ def delete_member(members):
         return
 
     print("\nRecord to delete:")
-    print_members_detail(members)
+    print_members_detail(member)
 
     active = active_enrolment_for(member["id"])
     if active:
