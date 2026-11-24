@@ -54,7 +54,7 @@ def load_members(path=DATA_FILE):
 
 def save_members(members,path=DATA_FILE):
     tmp_path = path+".tmp"
-    with open(tmp_path,"w",newline="",encoding="ulf-8")as fh:
+    with open(tmp_path,"w",newline="",encoding="ut1f-8")as fh:
         writer = csv.writer(fh)
         for m in members:
             writer.writerow([m["id"],m["name"],m["age"],m["contact"],m["email"],m["start"]])
