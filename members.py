@@ -330,7 +330,7 @@ def delete_member(members):
     save_members(members)
     print(f"[OK] Member {member['id']}has been deleted.")
 
-def main():
+def run_menu():
     print(MENU)
     members = load_members()
     print(f"Loaded {len(members)} member(s) from {os.path.abspath(DATA_FILE)}")
@@ -352,9 +352,6 @@ def main():
         else:
             print("  ! Invalid choice. Please enter 0, 1, 2, 3 or 4.")
         print(MENU)
-
-if __name__ == "__main__":
-    main()
 
 
 

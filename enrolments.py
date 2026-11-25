@@ -99,7 +99,6 @@ def enrol_member():
     print("---------------------------------")
 
 def display_enrolments():
-
     while True:
         print("\n========== DISPLAY ENROLMENTS ==========")
         print("1. Display All Enrolments")
