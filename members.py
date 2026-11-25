@@ -1,357 +1,371 @@
-import csv
 import os
-import re
-from datetime import datetime
+from datetime import date
 
-DATA_FILE = "members.txt"
-ENROLMENT_FILE = "enrollments.txt"
 
-ID_PATTERN = re.compile(r"[A-Z0-9][A-Z0-9_-]{1,14}")
-CONTACT_PATTERN = re.compile(r"^\+?[0-9][0-9 \-]{5,19}$")
-EMAIL_PATTERN = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
-COMMA_ERROR = "Commas (,) are not allowed because they would break the CSV file."
+DATA_FOLDER = "text"
+MEMBER_FILE = os.path.join(DATA_FOLDER, "members.txt")
+ENROLMENT_FILE = os.path.join(DATA_FOLDER, "enrolments.txt")
 
-MENU = """
-=============================================
-   MEMBER MANAGEMENT SYSTEM 
-=============================================
-   1. Register a new member
-   2. View / search members
-   3. Update a member
-   4. Delete a member
-   0. Exit
-============================================="""
-    
-def load_members(path=DATA_FILE):
-    members = []
-    if not os.path.exists(path):
-        return members
 
-    with open(path,newline="",encoding="utf-8-sig") as fh:
-        for line_no,row in enumerate(csv.reader(fh),start=1):
-           if not row or all(cell.strip() == "" for cell in row):
-              continue
-           if line_no == 1 and row[0].strip().lower()in ("members id","memberid","id"):
-              continue
-           if len(row)<6:
-               print(f"[Warning]Line{line_no}is incomplete and was skipped.")
-               continue
-           mid,name,age,contact,email,start=[cell.strip()for cell in row[:6]]
-           try:
-               age_value=int(age)
-           except ValueError:
-               print(f"[Warning]Line{line_no}has an invalid age was skipped.")
-               continue
-           members.append({
-                "id":mid,
-                "name":name,
-                "age":age_value,
-                "contact":contact,
-                "email":email,
-                "start":start,
-                 })
-        return members
+def display_menu():
+    print("\n" + "=" * 45)
+    print("MEMBER MANAGEMENT")
+    print("=" * 45)
+    print("1. Register Member")
+    print("2. Display and Search Members")
+    print("3. Update Members")
+    print("4. Delete Members")
+    print("5. Back to Main Menu")
+    print("=" * 45)
 
-def save_members(members,path=DATA_FILE):
-    tmp_path = path+".tmp"
-    with open(tmp_path,"w",newline="",encoding="ut1f-8")as fh:
-        writer = csv.writer(fh)
-        for m in members:
-            writer.writerow([m["id"],m["name"],m["age"],m["contact"],m["email"],m["start"]])
-    os.replace(tmp_path,path)
 
-def find_member(members,member_id):
-    key = member_id.strip().lower()
-    for m in members:
-        if m["id"].lower() == key:
-            return m
-    return None
+def get_menu_choice():
+    while True:
+        choice = input("Enter your choice (1-5): ").strip()
 
-def next_member_id(members):
-    highest=0
-    for m in members:
-        match = re.fullmatch(r"M(\d+)",m["id"],re.IGNORECASE)
-        if match:
-            highest = max(highest,int(match.group(1)))
-    return f"M{highest+1:03d}"
+        if choice in ("1", "2", "3", "4", "5"):
+            return choice
 
-def confirm(prompt):
-        while True:
-            answer = input(prompt).strip().lower()
-            if answer in ("y","yes"):
+        print("Invalid choice. Please enter a number from 1 to 5.")
+
+def get_valid_name():
+    while True:
+        name = input("Enter Name: ").strip()
+
+        if name == "":
+            print("Name cannot be empty.")
+        elif "," in name:
+            print("Name cannot contain commas.")
+        else:
+            return name
+
+
+def get_valid_age():
+    while True:
+        text = input("Enter Age: ").strip()
+
+        if text.isdigit():
+            age = int(text)
+
+            if 5 <= age <= 120:
+                return text
+
+            print("Age must be between 5 and 120.")
+        else:
+            print("Age must be a whole number.")
+
+
+def get_valid_contact():
+    while True:
+        text = input("Enter Contact Number (e.g. 012-3456789): ").strip()
+
+        digits = "".join(c for c in text if c.isdigit())
+        allowed = all(c.isdigit() or c in " -+" for c in text)
+
+        if allowed and 7 <= len(digits) <= 15:
+            return text
+
+        print("Invalid contact number. Use 7-15 digits, e.g. 012-3456789.")
+
+
+def get_valid_email():
+    while True:
+        text = input("Enter Email (e.g. name@mail.com): ").strip()
+
+        if "," not in text and " " not in text and text.count("@") == 1:
+            user, domain = text.split("@")
+
+            if user != "" and "." in domain and not domain.startswith(".") and not domain.endswith("."):
+                return text
+
+        print("Invalid email address, e.g. name@mail.com.")
+
+
+def get_valid_start_date():
+    while True:
+        text = input("Enter Membership Start Date (YYYY-MM-DD, blank = today): ").strip()
+
+        if text == "":
+            return str(date.today())
+
+        try:
+            date.fromisoformat(text)
+            return text
+        except ValueError:
+            print("Invalid date. Please use YYYY-MM-DD, e.g. 2026-01-15.")
+
+def generate_member_id():
+    highest = 0
+
+    if os.path.exists(MEMBER_FILE):
+        with open(MEMBER_FILE, "r") as file:
+            for line in file:
+                data = line.strip().replace("\ufeff", "").split(",")
+
+                if data[0].startswith("M") and data[0][1:].isdigit():
+                    highest = max(highest, int(data[0][1:]))
+
+    return "M" + str(highest + 1).zfill(3)
+
+
+def member_exists(memberID):
+    if not os.path.exists(MEMBER_FILE):
+        return False
+
+    with open(MEMBER_FILE, "r") as file:
+        for line in file:
+            data = line.strip().replace("\ufeff", "").split(",")
+
+            if data[0] == memberID:
                 return True
-            if answer in ("n","no",""):
-                return False
-            print("  !Please answer y or n.")
 
-def read_text(label,current=None):
-    suffix = f"[{current}]"if  current is not None else ""
-    while True:
-        raw = input(f"{label}{suffix}:").strip()
-        if raw =="":
-            if current is not None:
-                return current
-            print(" ! This field cannot be empty.")
-            continue
-        if "," in raw:
-            print(f" !{COMMA_ERROR}")
-            continue
-        return raw
+    return False
 
-def read_age(current=None):
-    suffix = f"[{current}]"if current is not None else ""
-    while True:
-        raw = input(f"Age 5-120{suffix}:").strip()
-        if raw == ""and current is not None:
-             return current
-        try:
-            value = int(raw)
-        except ValueError:
-            print(" ! Please enter a whole number, e.g. 24.")
-            continue
-        if not 5 <= value <= 120:
-            print(" Age must be between 5 and 120.")
-            continue
-        return value
 
-def read_contact(current=None):
-    suffix = f"[{current}]" if current is not None else ""
-    while True:
-        raw = input(f"Contact number (e.g. 012-3456789){suffix}:")
-        if raw == "" and current is not None:
-             return current
-        digits = re.sub(r"\D","",raw)
-        if not CONTACT_PATTERN.match(raw) or not 7<= len(digits) <= 15:
-            print(" !Please enter a valid phone number, e.g. 012-3456789.")
-            continue
-        return raw
-
-def read_email(current=None):
-    suffix = f"[{current}]" if current is not None else""
-    while True:
-        raw = input(f"Email address (e.g. name@gmail.com ){suffix}:").strip()
-        if raw == "" and current is not None:
-            return current
-        if not EMAIL_PATTERN.match(raw):
-            print(" ! Please enter a valid email address, e.g. name@mail.com")
-            continue
-        return raw
-
-def read_data(label, current=None):
-    today = datetime.today().strftime("%Y-%m-%d")
-    suffix = f"[{current}]" if current is not None else ""
-    while True:
-        raw = input(f"{label}(YYYY-MM-DD, e.g. {today}{suffix}:").strip()
-        if raw == "" and current is not None:
-            return current
-        try:
-            parsed = datetime.strptime(raw, "%Y-%m-%d")
-        except ValueError:
-            print("  ! Invalid date. Please use YYYY-MM-DD, e.g. 2026-01-15.")
-            continue
-        if not 1900 <= parsed.year <= 2100:
-            print("  ! The year looks wrong. Please check again.")
-            continue
-        return parsed.strftime("%Y-%m-%d")
-
-def print_table(members):
-    if not members:
-        print("\n (No members found.)")
-        return
-
-    headers = ["Member Id","Name","Age","Contact","Email","Start Date"]
-    rows = [[m["id"],m["name"],str(m["age"]),m["contact"],m["email"],m["start"]]for m in members]
-    widths = [max([len(headers[i])]+[len(r[i])for r in rows]) for i in range(len(headers))]
-    border = "+" + "+".join("-"*(w+2)for w in widths)+"+"
-
-    def format_row(cells):
-        return "| " + " | ".join(cell.ljust(widths[i])for u,cell in enumerate(cells))+"|"
-    print(border)
-    print(format_row(headers))
-    print(border)
-    for r in rows:
-        print(format_row(r))
-        print(border)
-
-def print_members_detail(member):
-    print(f" Member ID :{member['id']}")
-    print(f" Name :{member['name']}")
-    print(f" Age :{member['age']}")
-    print(f" Contact:{member['contact']}")
-    print(f" Email :{member['email']}")
-    print(f" Start Date:{member['start']}")
-
-def active_enrolment_for(member_id, path=ENROLMENT_FILE):
-    if not os.path.exists(path):
+def count_active_enrolments(memberID):
+    if not os.path.exists(ENROLMENT_FILE):
         return 0
+
     total = 0
-    try:
-        with open(path,newline="",encoding="utf-8-sig") as fh:
-            for row in csv.reader(fh):
-                if (len(row) >= 5
-                     and row[1].strip().lower() == member_id.lower()
-                      and row[4].strip().lower() == "active"):
-                   total += 1
-    except OSError:
-        return 0
+
+    with open(ENROLMENT_FILE, "r") as file:
+        for line in file:
+            data = line.strip().split(",")
+
+            if len(data) == 5:
+                if data[1] == memberID and data[4].strip().lower() == "active":
+                    total += 1
+
     return total
 
-def prompt_existing_member(members,prompt):
-    while True:
-        raw = input(prompt).strip()
-        if raw == "0":
-            print("Cancelled.")
-            return None
-        if raw == "":
-            print(" ! Please enter a Member ID.")
-            continue
-        member = find_member(members, raw)
-        if member is None:
-            print(f" ! Member ID{raw.upper()}was not found. Please try again.")
-            continue
-        return member
+def register_member():
+    print("\n========== REGISTER MEMBER ==========")
 
-def add_member(members):
-    print("\n--- Register a new member ---")
-    suggestion = next_member_id(members)
+    if not os.path.exists(MEMBER_FILE):
+        open(MEMBER_FILE, "w").close()
+        print("Members file not found. A new one has been created.")
 
+    memberID = generate_member_id()
+
+    while member_exists(memberID):
+        memberID = "M" + str(int(memberID[1:]) + 1).zfill(3)
+
+    name = get_valid_name()
+    age = get_valid_age()
+    contact = get_valid_contact()
+    email = get_valid_email()
+    startDate = get_valid_start_date()
+
+    with open(MEMBER_FILE, "a") as file:
+        file.write(f"{memberID},{name},{age},{contact},{email},{startDate}\n")
+
+    print("\nRegistration Successful!")
+    print("---------------------------------")
+    print("Member ID   :", memberID)
+    print("Name        :", name)
+    print("Age         :", age)
+    print("Contact     :", contact)
+    print("Email       :", email)
+    print("Start Date  :", startDate)
+    print("---------------------------------")
+
+def display_members():
     while True:
-        raw = input(f"Member ID (press Enter to use {suggestion},0 to cancel):").strip()
-        if raw == "0":
-            print("Add cancelled.")
+        print("\n========== DISPLAY MEMBERS ==========")
+        print("1. Display All Members")
+        print("2. Search by Member ID")
+        print("3. Search by Name")
+        print("4. Search by Email")
+        print("5. Back")
+
+        choice = input("Enter your choice (1-5): ").strip()
+
+        if choice == "5":
             return
-        member_id = (raw or suggestion).upper()
-        if not ID_PATTERN.fullmatch(member_id):
-            print(" ! Use 2-15 letters/digits, e.g. M004 ( no spaces or commas).")
+
+        if choice not in ("1", "2", "3", "4"):
+            print("Invalid choice.")
             continue
-        if find_member(members, member_id):
-            print(f" ! Member ID{member_id} already exists. Please choose another ID.")
-            continue
-        break
 
-    member = {
-        "id":member_id,
-        "name":read_text("Name"),
-        "age":read_age(),
-        "contact":read_contact(),
-        "email":read_email(),
-        "start":read_data("Membership Start Date"),
-    }
+        try:
+            with open(MEMBER_FILE, "r") as file:
+                records = [line.strip().replace("\ufeff", "").split(",") for line in file if line.strip()]
 
-    print("\nNew member to be saved:")
-    print_members_detail(member)
-    if not confirm("Save this member? (y/n):"):
-        print("Add cancelled.")
-        return
+            if not records:
+                print("No member records found.")
+                continue
 
-    members.append(member)
-    save_members(members)
-    print(f"Member{member_id} has been registered.")
+            if choice == "2":
+                searchID = input("Enter Member ID: ").strip().upper()
+                records = [r for r in records if len(r) == 6 and r[0] == searchID]
 
-def view_members(members):
-    print("\n --- View / search members ---")
-    keyword = input("Search by Member ID or name(press Enter to show all):").strip()
+            elif choice == "3":
+                searchName = input("Enter Name: ").strip().lower()
+                records = [r for r in records if len(r) == 6 and searchName in r[1].lower()]
 
-    if keyword:
-        key = keyword.lower()
-        results = [m for m in members
-                   if key in m["id"].lower() or key in m["name"].lower()]
-    else:
-        results = list(members)
+            elif choice == "4":
+                searchEmail = input("Enter Email: ").strip().lower()
+                records = [r for r in records if len(r) == 6 and searchEmail in r[4].lower()]
 
-    print(f"\n{len(results)}member(s) found:")
-    if results:
-        print()
-        print_table(results)
-    else:
-        print("\n (No members found.)")
+            if not records:
+                print("No matching members found.")
+                continue
 
-def update_member(members):
-    print("\n --- Update members ---")
-    if not members:
-        print("There are no members to update.")
-        return
+            print("\n" + "=" * 106)
+            print(f"{'Member ID':<12}{'Name':<25}{'Age':<6}{'Contact':<18}{'Email':<30}{'Start Date':<15}")
+            print("=" * 106)
 
-    member = prompt_existing_member(members, "Enter the Member ID to update(0 to cancel):")
-    if member is None:
-        return
+            for r in records:
+                print(f"{r[0]:<12}{r[1]:<25}{r[2]:<6}{r[3]:<18}{r[4]:<30}{r[5]:<15}")
 
-    print("\nCurrent record:")
-    print_members_detail(member)
-    print("\nPress Enter to keep the current value.")
+            print("=" * 106)
 
-    updated = {
-        "id":member["id"],
-        "name":read_text("Name",member["name"]),
-        "age":read_age(member["age"]),
-        "contact":read_contact(member["contact"]),
-        "email":read_email(member["email"]),
-        "start":read_data("Membership start date",member["start"]),
-    }
+        except FileNotFoundError:
+            print("Members file not found.")
+            return
 
-    if updated == member:
-        print("No changes made.")
-        return
+def update_members():
+    while True:
+        print("\n========== UPDATE MEMBERS ==========")
 
-    print("\nUpdated record:")
-    print_members_detail(updated)
-    if not confirm("Save these changes?(y/n):"):
-        print("Updated Cancelled.")
-        return
+        memberID = input("Enter Member ID (or 0 to go back): ").strip().upper()
 
-    member.update(updated)
-    save_members(members)
-    print(f"[OK]Member{member['id']}has been updated.")
+        if memberID == "0":
+            return
 
-def delete_member(members):
-    print("\n --- Delete members ---")
-    if not members:
-        print("There are no members to delete.")
-        return
+        try:
+            with open(MEMBER_FILE, "r") as file:
+                records = [line.strip().split(",") for line in file if line.strip()]
 
-    member = prompt_existing_member(members, "Enter the Member ID to delete:")
-    if member is None:
-        return
+            found = False
 
-    print("\nRecord to delete:")
-    print_members_detail(member)
+            for r in records:
+                if len(r) == 6 and r[0] == memberID:
+                    found = True
 
-    active = active_enrolment_for(member["id"])
-    if active:
-        print(f"\n WARNING:{active}active enrolment(s) in {ENROLMENT_FILE}"
-              f"still belong to this member.")
-        print("Delete the member will leave those records pointing to a missing member.")
+                    print("\nMember Found")
+                    print("Member ID :", r[0])
+                    print("Name      :", r[1])
+                    print("Age       :", r[2])
+                    print("Contact   :", r[3])
+                    print("Email     :", r[4])
+                    print("Start Date:", r[5])
 
-    if not confirm(f"Delete member {member['id']}permanently?(y/n):"):
-        print("Deleted Cancelled.")
-        return
+                    print("\nAvailable Fields:")
+                    print("1. Name")
+                    print("2. Age")
+                    print("3. Contact Number")
+                    print("4. Email")
+                    print("5. Membership Start Date")
+                    print("0. Cancel")
 
-    members.remove(member)
-    save_members(members)
-    print(f"[OK] Member {member['id']}has been deleted.")
+                    choice = input("Select the field to update (0-5): ").strip()
+
+                    if choice == "1":
+                        r[1] = get_valid_name()
+                    elif choice == "2":
+                        r[2] = get_valid_age()
+                    elif choice == "3":
+                        r[3] = get_valid_contact()
+                    elif choice == "4":
+                        r[4] = get_valid_email()
+                    elif choice == "5":
+                        r[5] = get_valid_start_date()
+                    else:
+                        print("Update cancelled.")
+                        break
+
+                    with open(MEMBER_FILE, "w") as file:
+                        for record in records:
+                            file.write(",".join(record) + "\n")
+
+                    print("Member updated successfully!")
+                    break
+
+            if not found:
+                print("Member ID not found.")
+
+        except FileNotFoundError:
+            print("Members file not found.")
+            return
+
+def delete_members():
+    while True:
+        print("\n========== DELETE MEMBERS ==========")
+
+        memberID = input("Enter Member ID (or 0 to go back): ").strip().upper()
+
+        if memberID == "0":
+            return
+
+        try:
+            with open(MEMBER_FILE, "r") as file:
+                records = [line.strip().replace("\ufeff", "").split(",") for line in file if line.strip()]
+
+            found = False
+
+            for r in records:
+                if len(r) == 6 and r[0] == memberID:
+                    found = True
+
+                    print("\nMember Found")
+                    print("Member ID :", r[0])
+                    print("Name      :", r[1])
+                    print("Age       :", r[2])
+                    print("Contact   :", r[3])
+                    print("Email     :", r[4])
+                    print("Start Date:", r[5])
+
+                    active = count_active_enrolments(memberID)
+
+                    if active > 0:
+                        print(f"\nWarning: this member has {active} active enrolment(s).")
+
+                    confirm = input("\nAre you sure you want to delete this member? (Y/N): ").strip().upper()
+
+                    if confirm == "Y":
+                        records.remove(r)
+
+                        with open(MEMBER_FILE, "w") as file:
+                            for record in records:
+                                file.write(",".join(record) + "\n")
+
+                        print("Member deleted successfully!")
+
+                    else:
+                        print("Deletion cancelled.")
+
+                    break
+
+            if not found:
+                print("Member ID not found.")
+
+        except FileNotFoundError:
+            print("Members file not found.")
+            return
 
 def run_menu():
-    print(MENU)
-    members = load_members()
-    print(f"Loaded {len(members)} member(s) from {os.path.abspath(DATA_FILE)}")
+    os.makedirs(DATA_FOLDER, exist_ok=True)
 
     while True:
-        choice = input("\nEnter your choice: ").strip()
+        display_menu()
+        choice = get_menu_choice()
 
-        if choice == "0":
-            print("Goodbye!")
-            break
-        elif choice == "1":
-            add_member(members)
+        if choice == "1":
+            register_member()
+
         elif choice == "2":
-            view_members(members)
+            display_members()
+
         elif choice == "3":
-            update_member(members)
+            update_members()
+
         elif choice == "4":
-            delete_member(members)
-        else:
-            print("  ! Invalid choice. Please enter 0, 1, 2, 3 or 4.")
-        print(MENU)
+            delete_members()
+
+        elif choice == "5":
+            break
 
 
-
+if __name__ == "__main__":
+    run_menu()
