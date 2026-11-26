@@ -319,7 +319,6 @@ def run_menu():
             delete_course()
 
         elif choice == "5":
-            print("Returning to Main Menu...")
             break
 
 
