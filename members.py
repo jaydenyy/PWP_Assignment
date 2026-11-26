@@ -9,7 +9,7 @@ ENROLMENT_FILE = os.path.join(DATA_FOLDER, "enrolments.txt")
 
 def display_menu():
     print("\n" + "=" * 45)
-    print("MEMBER MANAGEMENT")
+    print("DOODLE MEMBER MANAGEMENT")
     print("=" * 45)
     print("1. Register Member")
     print("2. Display and Search Members")

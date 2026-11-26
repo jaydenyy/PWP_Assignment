@@ -8,7 +8,7 @@ def display_menu():
     print("DOODLE COURSE MANAGEMENT")
     print("=" * 45)
     print("1. Add Course")
-    print("2. Display Courses")
+    print("2. Display and Search Courses")
     print("3. Update Course")
     print("4. Delete Course")
     print("5. Back to Main Menu")
