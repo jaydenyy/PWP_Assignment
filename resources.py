@@ -1,9 +1,6 @@
 
 import os
 
-RESOURCE_FILE = "text/resources.txt"
-COURSE_FILE = "text/courses.txt"
-
 
 def display_menu():
     print("\n" + "=" * 45)
@@ -11,8 +8,8 @@ def display_menu():
     print("=" * 45)
     print("1. Add Resource")
     print("2. Display and Search Resources")
-    print("3. Update Resource")
-    print("4. Delete Resource")
+    print("3. Update Resources")
+    print("4. Delete Resources")
     print("5. Back to Main Menu")
     print("=" * 45)
 
@@ -27,337 +24,292 @@ def get_menu_choice():
         print("Invalid choice. Please enter a number from 1 to 5.")
 
 
-def ensure_resource_file():
-    os.makedirs("text", exist_ok=True)
+def add_resource():
+    print("\n========== ADD RESOURCE ==========")
 
-    if not os.path.exists(RESOURCE_FILE):
-        open(RESOURCE_FILE, "w").close()
+    if not os.path.exists("text/courses.txt"):
+        print("Error: Course data file not found.")
+        return
 
+    if not os.path.exists("text/resources.txt"):
+        open("text/resources.txt", "w").close()
 
-def read_resources():
-    ensure_resource_file()
-    resources = []
+    while True:
+        courseID = input("Enter Course ID: ").strip().upper()
+        course_exists = False
 
-    with open(RESOURCE_FILE, "r") as file:
-        for line in file:
-            if line.strip():
+        if courseID == "":
+            print("Course ID cannot be empty.")
+            continue
+
+        with open("text/courses.txt", "r") as file:
+            for line in file:
                 data = line.strip().split(",")
 
-                if len(data) == 4:
-                    resources.append(data)
+                if data[0].upper() == courseID:
+                    course_exists = True
+                    break
 
-    return resources
+        if course_exists:
+            break
 
+        print("Course ID does not exist. Please try again.")
 
-def save_resources(resources):
-    with open(RESOURCE_FILE, "w") as file:
-        for resource in resources:
-            file.write(",".join(resource) + "\n")
+    resourceID = "R001"
 
+    with open("text/resources.txt", "r") as file:
+        records = [line.strip().split(",") for line in file if line.strip()]
 
-def check_course_id(course_id):
-    if not os.path.exists(COURSE_FILE):
-        return False
+    highest_number = 0
 
-    with open(COURSE_FILE, "r") as file:
-        for line in file:
-            data = line.strip().split(",")
+    for record in records:
+        if len(record) == 4:
+            if record[1].startswith("R") and record[1][1:].isdigit():
+                number = int(record[1][1:])
 
-            if data and data[0].upper() == course_id.upper():
-                return True
+                if number > highest_number:
+                    highest_number = number
 
-    return False
+    resourceID = "R" + str(highest_number + 1).zfill(3)
 
-
-def get_course_id():
     while True:
-        course_id = input("Enter Course ID: ").strip().upper()
+        resourceName = input("Enter Resource Name: ").strip()
 
-        if course_id == "":
-            print("Course ID cannot be empty.")
-
-        elif "," in course_id:
-            print("Commas are not allowed.")
-
-        elif check_course_id(course_id):
-            return course_id
-
-        else:
-            print("Course ID does not exist. Please try again.")
-
-
-def get_resource_name():
-    while True:
-        resource_name = input("Enter Resource Name: ").strip()
-
-        if resource_name == "":
+        if resourceName == "":
             print("Resource Name cannot be empty.")
 
-        elif "," in resource_name:
+        elif "," in resourceName:
             print("Commas are not allowed.")
 
         else:
-            return resource_name
+            break
 
-
-def get_availability():
     while True:
         available = input("Is the resource available? (Yes/No): ").strip().title()
 
         if available in ("Yes", "No"):
-            return available
+            break
 
         print("Invalid input. Please enter Yes or No.")
 
-
-def generate_resource_id(resources):
-    highest_number = 0
-
-    for resource in resources:
-        resource_id = resource[1]
-
-        if resource_id.startswith("R") and resource_id[1:].isdigit():
-            number = int(resource_id[1:])
-
-            if number > highest_number:
-                highest_number = number
-
-    return "R" + str(highest_number + 1).zfill(3)
-
-
-def add_resource():
-    print("\n========== ADD RESOURCE ==========")
-
-    if not os.path.exists(COURSE_FILE):
-        print("Error: Course data file not found.")
-        return
-
-    resources = read_resources()
-
-    course_id = get_course_id()
-    resource_id = generate_resource_id(resources)
-    resource_name = get_resource_name()
-    available = get_availability()
-
-    resource = [
-        course_id,
-        resource_id,
-        resource_name,
-        available
-    ]
-
-    resources.append(resource)
-    save_resources(resources)
+    with open("text/resources.txt", "a") as file:
+        file.write(f"{courseID},{resourceID},{resourceName},{available}\n")
 
     print("\nResource Added Successfully!")
     print("---------------------------------")
-    print("Course ID    :", course_id)
-    print("Resource ID  :", resource_id)
-    print("Resource Name:", resource_name)
+    print("Course ID    :", courseID)
+    print("Resource ID  :", resourceID)
+    print("Resource Name:", resourceName)
     print("Available    :", available)
     print("---------------------------------")
 
 
 def display_resources():
-    print("\n========== DISPLAY RESOURCES ==========")
+    while True:
+        print("\n========== DISPLAY RESOURCES ==========")
+        print("1. Display All Resources")
+        print("2. Search by Resource ID")
+        print("3. Search by Course ID")
+        print("4. Search by Resource Name")
+        print("5. Back")
 
-    resources = read_resources()
+        choice = input("Enter your choice (1-5): ").strip()
 
-    if not resources:
-        print("No resource records found.")
-        return
+        if choice == "5":
+            return
 
-    print("-" * 75)
-    print("{:<15} {:<15} {:<25} {:<15}".format(
-        "Course ID", "Resource ID", "Resource Name", "Available"
-    ))
-    print("-" * 75)
+        if choice not in ("1", "2", "3", "4"):
+            print("Invalid choice.")
+            continue
 
-    for resource in resources:
-        print("{:<15} {:<15} {:<25} {:<15}".format(
-            resource[0],
-            resource[1],
-            resource[2][:24],
-            resource[3]
-        ))
+        try:
+            with open("text/resources.txt", "r") as file:
+                records = [line.strip().split(",") for line in file if line.strip()]
 
-    print("-" * 75)
+            if not records:
+                print("No resource records found.")
+                continue
 
-    search_resources(resources)
+            if choice == "2":
+                searchID = input("Enter Resource ID: ").strip().upper()
+                records = [r for r in records if r[1].upper() == searchID]
+
+            elif choice == "3":
+                searchID = input("Enter Course ID: ").strip().upper()
+                records = [r for r in records if r[0].upper() == searchID]
+
+            elif choice == "4":
+                searchName = input("Enter Resource Name: ").strip().lower()
+                records = [r for r in records if searchName in r[2].lower()]
+
+            if not records:
+                print("No matching resources found.")
+                continue
+
+            print("\n" + "=" * 85)
+            print(f"{'Course ID':<15}{'Resource ID':<15}{'Resource Name':<35}{'Available':<15}")
+            print("=" * 85)
+
+            for r in records:
+                if len(r) == 4:
+                    print(f"{r[0]:<15}{r[1]:<15}{r[2]:<35}{r[3]:<15}")
+
+            print("=" * 85)
+
+        except FileNotFoundError:
+            print("Resources file not found.")
+            return
 
 
-def search_resources(resources):
-    print("\n========== SEARCH RESOURCES ==========")
-    print("1. Search by Course ID")
-    print("2. Search by Resource ID")
-    print("3. Search by Resource Name")
-    print("4. Back")
+def update_resources():
 
     while True:
-        choice = input("Enter your choice (1-4): ").strip()
+        print("\n========== UPDATE RESOURCES ==========")
 
-        if choice in ("1", "2", "3", "4"):
-            break
+        resourceID = input("Enter Resource ID (or 0 to go back): ").strip().upper()
 
-        print("Invalid choice. Please try again.")
+        if resourceID == "0":
+            return
 
-    if choice == "4":
-        return
+        try:
+            with open("text/resources.txt", "r") as file:
+                records = [line.strip().split(",") for line in file if line.strip()]
 
-    keyword = input("Enter search keyword: ").strip().lower()
+            found = False
 
-    if keyword == "":
-        print("Search keyword cannot be empty.")
-        return
+            for r in records:
+                if len(r) == 4 and r[1].upper() == resourceID:
+                    found = True
 
-    found = []
+                    print("\nResource Found")
+                    print("Course ID:", r[0])
+                    print("Resource ID:", r[1])
+                    print("Resource Name:", r[2])
+                    print("Current Availability:", r[3])
 
-    for resource in resources:
+                    print("\nPress Enter to keep the current value.")
 
-        if choice == "1" and keyword == resource[0].lower():
-            found.append(resource)
+                    newCourseID = input("Enter New Course ID: ").strip().upper()
 
-        elif choice == "2" and keyword == resource[1].lower():
-            found.append(resource)
+                    if newCourseID != "":
+                        course_exists = False
 
-        elif choice == "3" and keyword in resource[2].lower():
-            found.append(resource)
+                        if os.path.exists("text/courses.txt"):
+                            with open("text/courses.txt", "r") as courseFile:
+                                for line in courseFile:
+                                    data = line.strip().split(",")
 
-    if found:
-        print("\nSearch Results:")
+                                    if data[0].upper() == newCourseID:
+                                        course_exists = True
+                                        break
 
-        for resource in found:
-            print("---------------------------------")
-            print("Course ID    :", resource[0])
-            print("Resource ID  :", resource[1])
-            print("Resource Name:", resource[2])
-            print("Available    :", resource[3])
+                        if course_exists:
+                            r[0] = newCourseID
+                        else:
+                            print("Course ID does not exist. Keeping old Course ID.")
 
-    else:
-        print("No matching resource found.")
+                    newResourceName = input("Enter New Resource Name: ").strip()
+
+                    while "," in newResourceName:
+                        print("Commas are not allowed.")
+                        newResourceName = input("Enter New Resource Name: ").strip()
+
+                    if newResourceName != "":
+                        r[2] = newResourceName
+
+                    print("\nAvailable Options:")
+                    print("1. Yes")
+                    print("2. No")
+
+                    while True:
+                        choice = input("Select new availability (1-2) or press Enter to keep current: ").strip()
+
+                        if choice == "":
+                            break
+
+                        elif choice == "1":
+                            r[3] = "Yes"
+                            break
+
+                        elif choice == "2":
+                            r[3] = "No"
+                            break
+
+                        else:
+                            print("Invalid choice. Please enter 1 or 2.")
+
+                    with open("text/resources.txt", "w") as file:
+                        for record in records:
+                            file.write(",".join(record) + "\n")
+
+                    print("Resource updated successfully!")
+                    break
+
+            if not found:
+                print("Resource ID not found.")
+
+        except FileNotFoundError:
+            print("Resources file not found.")
+            return
 
 
-def update_resource():
-    print("\n========== UPDATE RESOURCE ==========")
-
-    resources = read_resources()
-
-    if not resources:
-        print("No resource records found.")
-        return
-
-    resource_id = input("Enter Resource ID to update: ").strip().upper()
-
-    selected_resource = None
-
-    for resource in resources:
-        if resource[1].upper() == resource_id:
-            selected_resource = resource
-            break
-
-    if selected_resource is None:
-        print("Resource ID does not exist.")
-        return
-
-    print("\nCurrent Resource Details")
-    print("---------------------------------")
-    print("Course ID    :", selected_resource[0])
-    print("Resource ID  :", selected_resource[1])
-    print("Resource Name:", selected_resource[2])
-    print("Available    :", selected_resource[3])
-    print("---------------------------------")
-
-    print("Press Enter to keep the current value.")
-
-    new_course_id = input("Enter New Course ID: ").strip().upper()
-
-    if new_course_id != "":
-        if check_course_id(new_course_id):
-            selected_resource[0] = new_course_id
-        else:
-            print("Invalid Course ID. Keeping the old Course ID.")
-
-    new_name = input("Enter New Resource Name: ").strip()
-
-    while "," in new_name:
-        print("Commas are not allowed.")
-        new_name = input("Enter New Resource Name: ").strip()
-
-    if new_name != "":
-        selected_resource[2] = new_name
+def delete_resources():
 
     while True:
-        new_available = input(
-            "Is the resource available? (Yes/No): "
-        ).strip().title()
+        print("\n========== DELETE RESOURCES ==========")
 
-        if new_available == "":
-            break
+        resourceID = input("Enter Resource ID (or 0 to go back): ").strip().upper()
 
-        elif new_available in ("Yes", "No"):
-            selected_resource[3] = new_available
-            break
+        if resourceID == "0":
+            return
 
-        else:
-            print("Please enter Yes or No.")
+        try:
+            with open("text/resources.txt", "r") as file:
+                records = [line.strip().split(",") for line in file if line.strip()]
 
-    save_resources(resources)
+            found = False
 
-    print("\nResource Updated Successfully!")
-    print("---------------------------------")
-    print("Course ID    :", selected_resource[0])
-    print("Resource ID  :", selected_resource[1])
-    print("Resource Name:", selected_resource[2])
-    print("Available    :", selected_resource[3])
-    print("---------------------------------")
+            for r in records:
+                if len(r) == 4 and r[1].upper() == resourceID:
+                    found = True
 
+                    print("\nResource Found")
+                    print("Course ID:", r[0])
+                    print("Resource ID:", r[1])
+                    print("Resource Name:", r[2])
+                    print("Available:", r[3])
 
-def delete_resource():
-    print("\n========== DELETE RESOURCE ==========")
+                    confirm = input(
+                        "\nAre you sure you want to delete this resource? (Y/N): "
+                    ).strip().upper()
 
-    resources = read_resources()
+                    if confirm == "Y":
+                        records.remove(r)
 
-    if not resources:
-        print("No resource records found.")
-        return
+                        with open("text/resources.txt", "w") as file:
+                            for record in records:
+                                file.write(",".join(record) + "\n")
 
-    resource_id = input("Enter Resource ID to delete: ").strip().upper()
+                        print("Resource deleted successfully!")
 
-    selected_resource = None
+                    else:
+                        print("Deletion cancelled.")
 
-    for resource in resources:
-        if resource[1].upper() == resource_id:
-            selected_resource = resource
-            break
+                    break
 
-    if selected_resource is None:
-        print("Resource ID does not exist.")
-        return
+            if not found:
+                print("Resource ID not found.")
 
-    print("\nResource Details")
-    print("---------------------------------")
-    print("Course ID    :", selected_resource[0])
-    print("Resource ID  :", selected_resource[1])
-    print("Resource Name:", selected_resource[2])
-    print("Available    :", selected_resource[3])
-    print("---------------------------------")
-
-    confirmation = input(
-        "Are you sure you want to delete this resource? (Y/N): "
-    ).strip().upper()
-
-    if confirmation == "Y":
-        resources.remove(selected_resource)
-        save_resources(resources)
-
-        print("Resource Deleted Successfully!")
-
-    else:
-        print("Delete operation cancelled.")
+        except FileNotFoundError:
+            print("Resources file not found.")
+            return
 
 
 def run_menu():
-    ensure_resource_file()
+    os.makedirs("text", exist_ok=True)
+
+    if not os.path.exists("text/resources.txt"):
+        open("text/resources.txt", "w").close()
 
     while True:
         display_menu()
@@ -370,13 +322,12 @@ def run_menu():
             display_resources()
 
         elif choice == "3":
-            update_resource()
+            update_resources()
 
         elif choice == "4":
-            delete_resource()
+            delete_resources()
 
         elif choice == "5":
-            print("Returning to Main Menu...")
             break
 
 
