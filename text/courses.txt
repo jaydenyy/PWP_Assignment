@@ -1,1 +1,5 @@
-C001,test,lol,5month,1,10
+C001,Python Programming,12 Weeks,500,30
+C002,Web Development,10 Weeks,450,25
+C003,Database Management,8 Weeks,400,20
+C004,Graphic Design,6 Weeks,350,15
+C005,Data Science,8 Weeks,600,20
